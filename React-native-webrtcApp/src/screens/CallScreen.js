@@ -1,15 +1,14 @@
-import React, {useEffect, useState, useCallback, useRef} from 'react';
-import {View, StyleSheet, Alert} from 'react-native';
-import {Text} from 'react-native-paper';
-import {Button} from 'react-native-paper';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { View, Alert } from 'react-native';
+
+/** Dependencies */
+import { Text } from 'react-native-paper';
+import { Button } from 'react-native-paper';
 import AsyncStorage from '@react-native-community/async-storage';
-import {TextInput} from 'react-native-paper';
-
-import {useFocusEffect} from '@react-navigation/native';
-
+import { TextInput } from 'react-native-paper';
+import { useFocusEffect } from '@react-navigation/native';
 import InCallManager from 'react-native-incall-manager';
 import Modal from 'react-native-modal';
-
 import {
   RTCPeerConnection,
   RTCIceCandidate,
@@ -21,17 +20,22 @@ import {
   registerGlobals,
 } from 'react-native-webrtc';
 
+/** Styles */
+import { styles } from '../assets/styles/call-screen';
+
 /** Dos EndPoints requeridos para configuracion */
 const STUN_SERVER = 'stun:webrtc.skyrockets.space:3478';
 const SOCKET_URL = 'wss://webrtc.skyrockets.space:8080';
 
-export default function CallScreen({navigation, ...props}) {
+/** Functional Component */
+export default function CallScreen({ navigation, ...props }) {
 
+  /** Define State */
   const [userId, setUserId] = useState('');
   const [socketActive, setSocketActive] = useState(false);
   const [calling, setCalling] = useState(false);
-  const [localStream, setLocalStream] = useState({toURL: () => null});
-  const [remoteStream, setRemoteStream] = useState({toURL: () => null});
+  const [localStream, setLocalStream] = useState({ toURL: () => null });
+  const [remoteStream, setRemoteStream] = useState({ toURL: () => null });
 
   const conn = useRef(new WebSocket(SOCKET_URL));
 
@@ -70,7 +74,7 @@ export default function CallScreen({navigation, ...props}) {
     navigation.setOptions({
       title: 'Your ID - ' + userId,
       headerRight: () => (
-        <Button mode="text" onPress={onLogout} style={{paddingRight: 10}}>
+        <Button mode="text" onPress={onLogout} style={{ paddingRight: 10 }}>
           Logout
         </Button>
       ),
@@ -98,7 +102,7 @@ export default function CallScreen({navigation, ...props}) {
     }
   }, [socketActive, userId]);
 
-  const onLogin = () => {};
+  const onLogin = () => { };
 
   useEffect(() => {
     /**
@@ -139,7 +143,7 @@ export default function CallScreen({navigation, ...props}) {
           break;
       }
     };
-    conn.current.onerror = function(err) {
+    conn.current.onerror = function (err) {
       console.log('Got error', err);
     };
     initLocalVideo();
@@ -242,7 +246,7 @@ export default function CallScreen({navigation, ...props}) {
   const handleOffer = async (offer, name) => {
     console.log(name + ' is calling you.');
     connectedUser.current = name;
-    offerRef.current = {name, offer};
+    offerRef.current = { name, offer };
     setIncomingCall(true);
     setOtherId(name);
     // acceptCall();
@@ -256,18 +260,18 @@ export default function CallScreen({navigation, ...props}) {
     console.log('Accepting CALL', name, offer);
     yourConn.current
       .setRemoteDescription(offer)
-      .then(function() {
+      .then(function () {
         connectedUser.current = name;
         return yourConn.current.createAnswer();
       })
-      .then(function(answer) {
+      .then(function (answer) {
         yourConn.current.setLocalDescription(answer);
         send({
           type: 'answer',
           answer: answer,
         });
       })
-      .then(function() {
+      .then(function () {
         // Send the answer to the remote peer using the signaling server
       })
       .catch(err => {
@@ -385,7 +389,7 @@ export default function CallScreen({navigation, ...props}) {
         <TextInput
           label="Enter Friends Id"
           mode="outlined"
-          style={{marginBottom: 7}}
+          style={{ marginBottom: 7 }}
           onChangeText={text => setCallToUsername(text)}
         />
         <Button
@@ -444,44 +448,3 @@ export default function CallScreen({navigation, ...props}) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  root: {
-    backgroundColor: '#fff',
-    flex: 1,
-    padding: 20,
-  },
-  inputField: {
-    marginBottom: 10,
-    flexDirection: 'column',
-  },
-  videoContainer: {
-    flex: 1,
-    minHeight: 450,
-  },
-  videos: {
-    width: '100%',
-    flex: 1,
-    position: 'relative',
-    overflow: 'hidden',
-
-    borderRadius: 6,
-  },
-  localVideos: {
-    height: 100,
-    marginBottom: 10,
-  },
-  remoteVideos: {
-    height: 400,
-  },
-  localVideo: {
-    backgroundColor: '#f2f2f2',
-    height: '100%',
-    width: '100%',
-  },
-  remoteVideo: {
-    backgroundColor: '#f2f2f2',
-    height: '100%',
-    width: '100%',
-  },
-});
